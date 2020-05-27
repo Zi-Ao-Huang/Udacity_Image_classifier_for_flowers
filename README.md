@@ -1,1 +1,2 @@
-# Udacity_Image_classifier_for_flowers
+# Udacity AI programming with python
+# Image classifier for flowers
