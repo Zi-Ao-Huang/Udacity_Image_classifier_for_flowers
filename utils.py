@@ -1,6 +1,5 @@
 import argparse
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
 from torch import nn
 from torch import optim
@@ -44,13 +43,13 @@ def load_data(where  = "./flowers"):
     validloader = torch.utils.data.DataLoader(valid_data, batch_size=32, shuffle=True)
     testloader = torch.utils.data.DataLoader(test_data, batch_size=32, shuffle=True)
 
-    return trainloader, validloader, testloader
+    return train_data, valid_data, test_data, trainloader, validloader, testloader
 
 
 def train_model(args, device):
     model = getattr(models, args.arch)(pretrained=True)
     hidden_units = int(args.hidden_units)
-    trainloader, validloader, testloader = load_data()
+    train_data, valid_data, test_data, trainloader, validloader, testloader = load_data()
     for param in model.parameters():
         param.requires_grad = False
 
@@ -112,7 +111,6 @@ def train_model(args, device):
 
                 running_loss = 0
                 model.train()
-    print("Training done!")
 
     return model, optimizer, classifier
 
@@ -121,7 +119,7 @@ def testing(model, testloader, device):
     correct = 0
     total = 0
     model.to(device)
-    trainloader, validloader, testloader = load_data()
+    train_data, valid_data, test_data, trainloader, validloader, testloader = load_data()
     with torch.no_grad():
         for data in testloader:
             images, labels = data
@@ -135,6 +133,7 @@ def testing(model, testloader, device):
 
 
 def save_checkpoint(path, model, optimizer, args, classifier):
+    train_data, valid_data, test_data, trainloader, validloader, testloader = load_data()
     model.class_to_idx = train_data.class_to_idx
     checkpoint = {'arch': args.arch,
                   'model': model,
@@ -181,15 +180,3 @@ def process_image(image):
     image = (image - mean) / std
     image = image.transpose((2,0,1))
     return image
-
-
-def imshow(image, ax=None, title=None):
-    if ax is None:
-        fig, ax = plt.subplots()
-    image = image.transpose((1, 2, 0))
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    image = std * image + mean
-    image = np.clip(image, 0, 1)
-    ax.imshow(image)
-    return ax

@@ -1,6 +1,5 @@
 import argparse
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
 from torch import nn
 from torch import optim
@@ -19,7 +18,7 @@ def parse_args():
     parser.add_argument('data_dir', nargs='*', action="store", default="./flowers/")
     parser.add_argument('--arch', dest='arch', default='vgg16', choices=['vgg16', 'densenet121'])
     parser.add_argument('--learning_rate', dest='learning_rate', default='0.001')
-    parser.add_argument('--hidden_units', dest='hidden_units', default='512')
+    parser.add_argument('--hidden_units', dest='hidden_units', default='1024')
     parser.add_argument('--epochs', dest='epochs', default='3')
     parser.add_argument('--devices', action='store', default='gpu')
     parser.add_argument('--save_dir', dest="save_dir", action="store", default="checkpoint.pth")
@@ -34,18 +33,19 @@ def main():
     epochs = args.epochs
     save_dir = args.save_dir
     hidden_units = int(args.hidden_units)
-    path = args.save_dir
     devices = args.devices
     if devices == 'gpu':
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     else:
         device = torch.device('cpu')
 
-    trainloader, validloader, testloader = load_data()
+    train_data, valid_data, test_data, trainloader, validloader, testloader = load_data()
     model, optimizer, classifier = train_model(args, device)
     print ("Training complete.")
     testing(model, testloader, device)
     print ("Testing complete.")
+    model.class_to_idx = train_data.class_to_idx
+    path = args.save_dir
     save_checkpoint(path, model, optimizer, args, classifier)
     print ("checkpoint created.")
 
